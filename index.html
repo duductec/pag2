@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8" />
-  <title>Sistema de Pagamentos - ONLINE (Google Sheets)</title>
+  <title>Sistema de Pagamentos - Online</title>
   <style>
     body { font-family: Arial, sans-serif; margin: 20px; }
     input, button { margin: 5px; padding: 8px; }
@@ -41,7 +41,7 @@
   </table>
 
   <script>
-    const API_URL = "https://script.google.com/macros/s/NOVO-LINK-REAL-DA-API/exec";
+    const API_URL = "https://script.google.com/macros/s/AKfycbyLQJoG-H_ZnnJ0gZTxA3ZOnbbkhMYmkoy_nGYCSMdUtrochtaTD9XnbPDHrEoOqPrwvw/exec";
     let dadosGlobal = [];
 
     function salvarDados() {
@@ -156,7 +156,7 @@
     function deletarPorNumero() {
       const numeroSerie = prompt("Digite o número de série a excluir:");
       if (!numeroSerie) return;
-      alert("A exclusão online só pode ser feita manualmente na planilha por enquanto.");
+      alert("Exclusão deve ser feita manualmente na planilha.");
     }
   </script>
 </body>
