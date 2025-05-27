@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8" />
-  <title>Sistema de Pagamentos (Planilha Google Real)</title>
+  <title>Sistema de Pagamentos - ONLINE (Google Sheets)</title>
   <style>
     body { font-family: Arial, sans-serif; margin: 20px; }
     input, button { margin: 5px; padding: 8px; }
@@ -12,7 +12,7 @@
   </style>
 </head>
 <body onload="carregarDados()">
-  <h2>Sistema de Pagamentos (Conectado à Planilha Real)</h2>
+  <h2>Sistema de Pagamentos (Google Planilha Online)</h2>
   <label>Número de Série:</label><input type="text" id="numero_serie" onblur="buscarNomePorNumeroSerie()"><br>
   <label>Nome:</label><input type="text" id="nome"><br>
   <label>Valor a Receber:</label><input type="number" id="valor_receber"><br>
@@ -41,7 +41,7 @@
   </table>
 
   <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbyMvv8lLa_NrAfhtMHSH2hT7VqS2_yp6WqTZFv9ybQxGB3oHYVjNjgBbI4oVmuBgPq2WQ/exec";
+    const API_URL = "https://script.google.com/macros/s/NOVO-LINK-REAL-DA-API/exec";
     let dadosGlobal = [];
 
     function salvarDados() {
@@ -156,7 +156,7 @@
     function deletarPorNumero() {
       const numeroSerie = prompt("Digite o número de série a excluir:");
       if (!numeroSerie) return;
-      alert("Como estamos usando Google Sheets, a exclusão deve ser feita manualmente na planilha ou via Apps Script.");
+      alert("A exclusão online só pode ser feita manualmente na planilha por enquanto.");
     }
   </script>
 </body>
