@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <title>Sistema de Pagamentos (Planilha Google Real)</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    input, button { margin: 5px; padding: 8px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { border: 1px solid #ccc; padding: 6px; text-align: center; }
+    th { background: #f0f0f0; }
+  </style>
+</head>
+<body onload="carregarDados()">
+  <h2>Sistema de Pagamentos (Conectado à Planilha Real)</h2>
+  <label>Número de Série:</label><input type="text" id="numero_serie" onblur="buscarNomePorNumeroSerie()"><br>
+  <label>Nome:</label><input type="text" id="nome"><br>
+  <label>Valor a Receber:</label><input type="number" id="valor_receber"><br>
+  <label>Juros (%):</label><input type="number" id="juros"><br>
+  <button onclick="salvarDados()">Adicionar Cliente</button>
+  <button onclick="deletarPorNumero()">Deletar por Nº Série</button>
+  <button onclick="exportarCSV()">Exportar CSV</button>
+  <input type="file" id="csv_input" onchange="importarCSV()" /><br><br>
+
+  <label>Filtrar por Data (dd/mm/aaaa):</label><input type="text" id="filtro_data">
+  <button onclick="filtrarPorData()">Buscar</button>
+
+  <h3>Clientes Cadastrados</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Número de Série</th>
+        <th>Nome</th>
+        <th>Valor a Receber</th>
+        <th>Juros (%)</th>
+        <th>Valor Total</th>
+        <th>Data do Cadastro</th>
+      </tr>
+    </thead>
+    <tbody id="tabela_resultados"></tbody>
+  </table>
+
+  <script>
+    const API_URL = "https://script.google.com/macros/s/AKfycbyMvv8lLa_NrAfhtMHSH2hT7VqS2_yp6WqTZFv9ybQxGB3oHYVjNjgBbI4oVmuBgPq2WQ/exec";
+    let dadosGlobal = [];
+
+    function salvarDados() {
+      const numeroSerie = document.getElementById("numero_serie").value;
+      const nome = document.getElementById("nome").value;
+      const valorReceber = parseFloat(document.getElementById("valor_receber").value);
+      const juros = parseFloat(document.getElementById("juros").value);
+      const dataCadastro = new Date().toLocaleDateString("pt-BR");
+      const valorTotal = valorReceber - (valorReceber * juros / 100);
+
+      if (!numeroSerie || !nome || isNaN(valorReceber) || isNaN(juros)) {
+        alert("Preencha todos os campos corretamente!");
+        return;
+      }
+
+      fetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          numeroSerie, nome, valorReceber, juros, valorTotal, dataCadastro
+        })
+      })
+      .then(res => res.text())
+      .then(() => {
+        alert("Cliente salvo com sucesso!");
+        carregarDados();
+      })
+      .catch(err => {
+        alert("Erro ao salvar: " + err);
+      });
+    }
+
+    function carregarDados() {
+      fetch(API_URL)
+        .then(res => res.json())
+        .then(data => {
+          dadosGlobal = data;
+          renderizarTabela(data);
+        });
+    }
+
+    function renderizarTabela(data) {
+      let tabela = "";
+      data.forEach(d => {
+        tabela += `
+          <tr>
+            <td>${d.numeroSerie}</td>
+            <td>${d.nome}</td>
+            <td>R$ ${parseFloat(d.valorReceber).toFixed(2)}</td>
+            <td>${d.juros}%</td>
+            <td><strong>R$ ${parseFloat(d.valorTotal).toFixed(2)}</strong></td>
+            <td>${d.dataCadastro}</td>
+          </tr>`;
+      });
+      document.getElementById("tabela_resultados").innerHTML = tabela;
+    }
+
+    function buscarNomePorNumeroSerie() {
+      const numeroSerie = document.getElementById("numero_serie").value;
+      if (!numeroSerie) return;
+      const encontrado = dadosGlobal.find(c => c.numeroSerie === numeroSerie);
+      if (encontrado) {
+        document.getElementById("nome").value = encontrado.nome;
+      }
+    }
+
+    function exportarCSV() {
+      let csv = "Número de Série,Nome,Valor a Receber,Juros (%),Valor Total,Data do Cadastro\n";
+      dadosGlobal.forEach(d => {
+        csv += `${d.numeroSerie},${d.nome},${d.valorReceber},${d.juros},${d.valorTotal},${d.dataCadastro}\n`;
+      });
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "clientes_pagamentos.csv";
+      link.click();
+    }
+
+    function importarCSV() {
+      const file = document.getElementById("csv_input").files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const linhas = e.target.result.split("\n").slice(1);
+        linhas.forEach(linha => {
+          const [numeroSerie, nome, valorReceber, juros, valorTotal, dataCadastro] = linha.split(",");
+          if (numeroSerie && nome && valorReceber && juros && valorTotal && dataCadastro) {
+            fetch(API_URL, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                numeroSerie, nome, valorReceber, juros, valorTotal, dataCadastro
+              })
+            }).then(() => carregarDados());
+          }
+        });
+      };
+      reader.readAsText(file);
+    }
+
+    function filtrarPorData() {
+      const filtro = document.getElementById("filtro_data").value.trim();
+      if (!filtro) {
+        renderizarTabela(dadosGlobal);
+        return;
+      }
+      const filtrados = dadosGlobal.filter(d => d.dataCadastro === filtro);
+      renderizarTabela(filtrados);
+    }
+
+    function deletarPorNumero() {
+      const numeroSerie = prompt("Digite o número de série a excluir:");
+      if (!numeroSerie) return;
+      alert("Como estamos usando Google Sheets, a exclusão deve ser feita manualmente na planilha ou via Apps Script.");
+    }
+  </script>
+</body>
+</html>
